@@ -1,0 +1,70 @@
+{
+    "$schema": "http://json.schemastore.org/vss-extension",
+    "manifestVersion": 1,
+    "id": "copilot-pr-review",
+    "name": "Copilot PR Review",
+    "version": "0.0.1",
+    "publisher": "Biswajit",
+    "public": true,
+    "targets": [
+        {
+            "id": "Microsoft.VisualStudio.Services"
+        }
+    ],
+    "description": "Automated pull request code reviews powered by agentic AI. Get instant feedback on your PRs directly in Azure DevOps using the GitHub Copilot CLI.",
+    "categories": [
+        "Azure Pipelines"
+    ],
+    "tags": [
+        "code review",
+        "copilot",
+        "ai",
+        "pull request",
+        "automation",
+        "github copilot"
+    ],
+    "icons": {
+        "default": "images/extension-icon.png"
+    },
+    "content": {
+        "details": {
+            "path": "README.md"
+        }
+    },
+    "links": {
+        "repository": {
+            "uri": "https://github.com/biswajitsamal59/copilot-pr-review"
+        },
+        "issues": {
+            "uri": "https://github.com/biswajitsamal59/copilot-pr-review/issues"
+        },
+        "support": {
+            "uri": "https://github.com/biswajitsamal59/copilot-pr-review/issues"
+        }
+    },
+    "repository": {
+        "type": "git",
+        "uri": "https://github.com/biswajitsamal59/copilot-pr-review"
+    },
+    "branding": {
+        "color": "rgb(0, 122, 204)",
+        "theme": "dark"
+    },
+    "files": [
+        {
+            "path": "CopilotPRReviewV1"
+        }
+    ],
+    "contributions": [
+        {
+            "id": "copilot-pr-review-task",
+            "type": "ms.vss-distributed-task.task",
+            "targets": [
+                "ms.vss-distributed-task.tasks"
+            ],
+            "properties": {
+                "name": "CopilotPRReviewV1"
+            }
+        }
+    ]
+}

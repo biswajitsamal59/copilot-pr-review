@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+*.js
+*.js.map
+*.d.ts
+!jest.config.js
+
+# Package outputs
+*.vsix
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test outputs
+coverage/
+test-results.xml
+
+# Temporary files
+*.tmp
+*.temp
+PR_Details.txt
+Iteration_Details.txt
+# Dev task folder (built files copied at package time)
+CopilotPRReviewDevV1/*
+!CopilotPRReviewDevV1/task.json
+tmpclaude*
+CLAUDE.md
+.claude/settings.local.json

@@ -1,0 +1,21 @@
+{
+  "name": "copilot-pr-review",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/biswajitsamal59/copilot-pr-review.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/biswajitsamal59/copilot-pr-review/issues"
+  },
+  "homepage": "https://github.com/biswajitsamal59/copilot-pr-review#readme"
+}

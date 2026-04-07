@@ -1,0 +1,192 @@
+{
+    "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+    "id": "a8755e64-1ed1-419c-9319-47766c887d99",
+    "name": "CopilotPRReview",
+    "friendlyName": "Copilot PR Review",
+    "description": "Automated pull request code reviews powered by the GitHub Copilot CLI",
+    "helpMarkDown": "[Learn more about this task](https://github.com/biswajitsamal59/copilot-pr-review)",
+    "category": "Utility",
+    "author": "Biswajit",
+    "version": {
+        "Major": 0,
+        "Minor": 0,
+        "Patch": 1
+    },
+    "instanceNameFormat": "Copilot PR Review",
+    "minimumAgentVersion": "2.182.1",
+    "inputs": [
+        {
+            "name": "githubPat",
+            "type": "string",
+            "label": "GitHub PAT",
+            "required": false,
+            "isSecret": true,
+            "helpMarkDown": "Personal Access Token for GitHub with Copilot access. Required for GitHub Copilot CLI to perform code reviews."
+        },
+        {
+            "name": "azureDevOpsPat",
+            "type": "string",
+            "label": "Azure DevOps PAT",
+            "required": false,
+            "helpMarkDown": "Personal Access Token for Azure DevOps. Used for retrieving pull request details and posting review comments. **Required for Azure DevOps Server (on-prem)**. For Azure DevOps Services (cloud), you can use the System Access Token instead by enabling the option below."
+        },
+        {
+            "name": "useSystemAccessToken",
+            "type": "boolean",
+            "label": "Use System Access Token",
+            "required": false,
+            "defaultValue": false,
+            "helpMarkDown": "When enabled, uses the pipeline's System.AccessToken (OAuth) instead of a PAT. This is the Microsoft-recommended authentication method for Azure DevOps Services. **Note**: The Build Service identity must have 'Contribute to pull requests' permission on the repository. Not supported for Azure DevOps Server (on-prem)."
+        },
+        {
+            "name": "organization",
+            "type": "string",
+            "label": "Organization",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "The Azure DevOps organization name for cloud-hosted instances (e.g., 'myorg' from https://dev.azure.com/myorg). For Azure DevOps Server (on-prem), use 'collectionUri' instead. If neither is specified, auto-detected from the pipeline context."
+        },
+        {
+            "name": "collectionUri",
+            "type": "string",
+            "label": "Collection URI",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "The full Azure DevOps collection URI (e.g., 'https://dev.azure.com/myorg', 'https://tfs.contoso.com/tfs/DefaultCollection'). If not specified, will be automatically detected from System.CollectionUri. Use this for Azure DevOps Server (on-prem) installations."
+        },
+        {
+            "name": "project",
+            "type": "string",
+            "label": "Project",
+            "required": false,
+            "defaultValue": "$(System.TeamProject)",
+            "helpMarkDown": "The Azure DevOps project name. Defaults to $(System.TeamProject)."
+        },
+        {
+            "name": "repository",
+            "type": "string",
+            "label": "Repository",
+            "required": false,
+            "defaultValue": "$(Build.Repository.Name)",
+            "helpMarkDown": "The repository name where the pull request exists. Defaults to $(Build.Repository.Name)."
+        },
+        {
+            "name": "pullRequestId",
+            "type": "string",
+            "label": "Pull Request ID",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "The ID of the pull request to review. If not specified, defaults to $(System.PullRequest.PullRequestId) when run as part of a PR validation build."
+        },
+        {
+            "name": "timeout",
+            "type": "string",
+            "label": "Timeout (minutes)",
+            "required": false,
+            "defaultValue": "15",
+            "helpMarkDown": "The maximum number of minutes to allow the Copilot review to run before timing out. Default is 15 minutes."
+        },
+        {
+            "name": "model",
+            "type": "string",
+            "label": "Copilot Model",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. The Copilot model to use for the review (e.g., 'gpt-4', 'claude-sonnet'). If not specified, uses the default model."
+        },
+        {
+            "name": "promptFile",
+            "type": "filePath",
+            "label": "Custom Prompt File",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. Path to a .txt file containing a custom prompt for Copilot. The file must exist and contain content."
+        },
+        {
+            "name": "prompt",
+            "type": "multiLine",
+            "label": "Custom Prompt",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. A custom prompt to pass directly to Copilot. If both prompt and promptFile are specified, prompt takes precedence.",
+            "properties": {
+                "rows": "10",
+                "maxLength": "5000"
+            }
+        },
+        {
+            "name": "promptRaw",
+            "type": "multiLine",
+            "label": "Raw Prompt",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. A raw prompt to pass directly to the Copilot CLI with no modification. Cannot be combined with other prompt inputs (prompt, promptFile, promptFileRaw).",
+            "properties": {
+                "rows": "10",
+                "maxLength": "5000"
+            }
+        },
+        {
+            "name": "promptFileRaw",
+            "type": "filePath",
+            "label": "Raw Prompt File",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. Path to a file containing a raw prompt to pass directly to the Copilot CLI with no modification. Cannot be combined with other prompt inputs (prompt, promptFile, promptRaw)."
+        },
+        {
+            "name": "authors",
+            "type": "string",
+            "label": "Author Filter",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. A comma-separated list of email addresses. If specified, the task will only run code reviews for PRs authored by users with matching email addresses. Uses $(Build.RequestedForEmail) for comparison."
+        },
+        {
+            "name": "includeWorkItems",
+            "type": "boolean",
+            "label": "Include Work Item Details",
+            "required": false,
+            "defaultValue": false,
+            "helpMarkDown": "When enabled, extracts JIRA ticket IDs from the PR description and fetches their details (title, description, acceptance criteria) as additional context for the Copilot review. Requires the JIRA credentials below to be configured."
+        },
+        {
+            "name": "jiraBaseUrl",
+            "type": "string",
+            "label": "JIRA Base URL",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "The base URL of your JIRA Cloud instance (e.g., 'https://myorg.atlassian.net'). Required if 'Include Work Item Details' is enabled."
+        },
+        {
+            "name": "jiraEmail",
+            "type": "string",
+            "label": "JIRA Email",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "The email address for your JIRA Cloud API authentication. Required if 'Include Work Item Details' is enabled."
+        },
+        {
+            "name": "jiraApiToken",
+            "type": "string",
+            "label": "JIRA API Token",
+            "required": false,
+            "isSecret": true,
+            "defaultValue": "",
+            "helpMarkDown": "The API token for your JIRA Cloud account. Generate a personal API token in your JIRA account settings. Required if 'Include Work Item Details' is enabled."
+        }
+    ],
+    "execution": {
+        "Node20_1": {
+            "target": "index.js"
+        }
+    },
+    "restrictions": {
+        "commands": {
+            "mode": "restricted"
+        },
+        "settableVariables": {
+            "allowed": []
+        }
+    }
+}
