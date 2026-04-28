@@ -1,19 +1,21 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
-    "id": "a8755e64-1ed1-419c-9319-47766c887d99",
+    "id": "bb63c626-0232-451a-b251-b1cd2c98f966",
     "name": "CopilotPRReview",
     "friendlyName": "Copilot PR Review",
     "description": "Automated pull request code reviews powered by the GitHub Copilot CLI",
-    "helpMarkDown": "[Learn more about this task](https://github.com/biswajitsamal59/copilot-pr-review)",
     "category": "Utility",
-    "author": "Biswajit",
+    "minimumAgentVersion": "2.144.0",
+    "runsOn": [
+        "Agent"
+    ],
+    "author": "Biswajit Samal",
     "version": {
-        "Major": 0,
+        "Major": 1,
         "Minor": 0,
-        "Patch": 1
+        "Patch": 0
     },
     "instanceNameFormat": "Copilot PR Review",
-    "minimumAgentVersion": "2.182.1",
     "inputs": [
         {
             "name": "githubPat",
@@ -141,52 +143,14 @@
             "required": false,
             "defaultValue": "",
             "helpMarkDown": "Optional. A comma-separated list of email addresses. If specified, the task will only run code reviews for PRs authored by users with matching email addresses. Uses $(Build.RequestedForEmail) for comparison."
-        },
-        {
-            "name": "includeWorkItems",
-            "type": "boolean",
-            "label": "Include Work Item Details",
-            "required": false,
-            "defaultValue": false,
-            "helpMarkDown": "When enabled, extracts JIRA ticket IDs from the PR description and fetches their details (title, description, acceptance criteria) as additional context for the Copilot review. Requires the JIRA credentials below to be configured."
-        },
-        {
-            "name": "jiraBaseUrl",
-            "type": "string",
-            "label": "JIRA Base URL",
-            "required": false,
-            "defaultValue": "",
-            "helpMarkDown": "The base URL of your JIRA Cloud instance (e.g., 'https://myorg.atlassian.net'). Required if 'Include Work Item Details' is enabled."
-        },
-        {
-            "name": "jiraEmail",
-            "type": "string",
-            "label": "JIRA Email",
-            "required": false,
-            "defaultValue": "",
-            "helpMarkDown": "The email address for your JIRA Cloud API authentication. Required if 'Include Work Item Details' is enabled."
-        },
-        {
-            "name": "jiraApiToken",
-            "type": "string",
-            "label": "JIRA API Token",
-            "required": false,
-            "isSecret": true,
-            "defaultValue": "",
-            "helpMarkDown": "The API token for your JIRA Cloud account. Generate a personal API token in your JIRA account settings. Required if 'Include Work Item Details' is enabled."
         }
     ],
     "execution": {
         "Node20_1": {
-            "target": "index.js"
-        }
-    },
-    "restrictions": {
-        "commands": {
-            "mode": "restricted"
+            "target": "task/index.js"
         },
-        "settableVariables": {
-            "allowed": []
+        "Node24": {
+            "target": "task/index.js"
         }
     }
 }

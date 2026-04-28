@@ -1,20 +1,32 @@
 {
-  "name": "copilotprreviewv1",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "azure-pipelines-task-lib": "^5.2.8"
-  },
-  "devDependencies": {
-    "@types/node": "^25.5.2",
-    "typescript": "^6.0.2"
-  }
+    "name": "copilot-pr-review-task",
+    "version": "1.0.0",
+    "description": "Azure DevOps extension for automated code reviews using agentic AI tools",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc",
+        "test": "mocha tests/_suite.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/biswajitsamal59/copilot-pr-review.git"
+    },
+    "keywords": [
+        "azure-devops",
+        "copilot",
+        "code-review",
+        "pull-request",
+        "ai"
+    ],
+    "author": "Biswajit",
+    "license": "MIT",
+    "dependencies": {
+        "azure-pipelines-task-lib": "^4.17.3",
+        "production": "^0.0.2"
+    },
+    "devDependencies": {
+        "@types/node": "^22.19.17",
+        "@types/q": "^1.5.8",
+        "typescript": "^5.3.0"
+    }
 }
