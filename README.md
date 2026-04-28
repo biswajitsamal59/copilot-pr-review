@@ -118,9 +118,9 @@ Only one of `prompt`, `promptFile`, `promptRaw`, `promptFileRaw` may be set per 
 The task writes two context files to the working directory before invoking the Copilot CLI:
 
 - `PR_Details.txt` — PR metadata, reviewers, description, and existing comment threads (including a JSON block of prior Copilot comments so the agent can resolve them when fixed).
-- `Iteration_Details.txt` — commits in the PR, list of changed files, and the unified `git diff` for the latest iteration.
+- `Iteration_Details.txt` — commits in the PR, list of changed files, and the unified `git diff` covering the entire PR (merge-base to the source branch tip), not just the latest push. This way every changed file is reviewed on every run.
 
-The Copilot CLI is launched with `--allow-all-paths --allow-all-tools --deny-tool 'shell(git push)'`, so the agent can read the repo and call helper scripts (`add-comment.js`, `update-comment.js`, `delete-comment.js`) but cannot push code.
+The Copilot CLI is launched with `--allow-all-paths --allow-all-tools --deny-tool 'shell(git push)' --no-color`, so the agent can read the repo and call helper scripts (`add-comment.js`, `update-comment.js`, `delete-comment.js`) but cannot push code.
 
 ## Source
 
