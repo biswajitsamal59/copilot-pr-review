@@ -1,8 +1,8 @@
 {
     "$schema": "http://json.schemastore.org/vss-extension",
     "manifestVersion": 1,
-    "id": "copilot-pr-review",
-    "name": "Copilot PR Review",
+    "id": "copilot-pr-review-v2",
+    "name": "Copilot PR Review V2",
     "version": "1.0.0",
     "publisher": "Biswajit",
     "public": true,
@@ -57,7 +57,7 @@
     ],
     "contributions": [
         {
-            "id": "copilot-pr-review-task",
+            "id": "copilot-pr-review-v2-task",
             "type": "ms.vss-distributed-task.task",
             "targets": [
                 "ms.vss-distributed-task.tasks"

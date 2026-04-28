@@ -1,7 +1,7 @@
 {
     "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
     "id": "bb63c626-0232-451a-b251-b1cd2c98f966",
-    "name": "CopilotPRReview",
+    "name": "CopilotPRReviewV2",
     "friendlyName": "Copilot PR Review",
     "description": "Automated pull request code reviews powered by the GitHub Copilot CLI",
     "category": "Utility",

@@ -2,10 +2,9 @@
     "name": "copilot-pr-review-task",
     "version": "1.0.0",
     "description": "Azure DevOps extension for automated code reviews using agentic AI tools",
-    "main": "index.js",
+    "main": "task/index.js",
     "scripts": {
-        "build": "tsc",
-        "test": "mocha tests/_suite.js"
+        "build": "tsc"
     },
     "repository": {
         "type": "git",
@@ -21,8 +20,7 @@
     "author": "Biswajit",
     "license": "MIT",
     "dependencies": {
-        "azure-pipelines-task-lib": "^4.17.3",
-        "production": "^0.0.2"
+        "azure-pipelines-task-lib": "^4.17.3"
     },
     "devDependencies": {
         "@types/node": "^22.19.17",
