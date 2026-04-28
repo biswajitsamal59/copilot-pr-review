@@ -46,14 +46,14 @@ Do NOT flag:
 ## Step 5: Post feedback (if any)
 If you found an issue in Steps 3-4, post an inline comment using the add-comment script. If no issues were found for this file, move to the next file without posting anything.
 
-**Prioritization:** Process files in this order to spend context budget on the highest-risk changes first:
+**Prioritization:** Process files in this order to spend context budget on the highest-risk changes first. But make sure you review all the code changes without skipping anything:
 1. New files and deleted files (highest risk of missing integration)
 2. Files with changed function signatures or public APIs
 3. Files touching security-sensitive areas (auth, input validation, crypto, SQL)
 4. Files with complex logic changes
 5. Config/build files and simple renames (lowest risk)
 
-Only after completing Steps 1-5 for ALL files, proceed to the General Feedback section below.
+Complete Steps 1-5 for ALL files.
 
 # Updating Feedback State
 
@@ -68,6 +68,7 @@ Only resolve threads where the fix is confirmed in the diff. Skip threads alread
 
 # Posting Comments
 
+Only post comment if you have any better suggestion or in case of an issue. Don't post positive feedback and informational notes.
 For each issue found during the per-file review:
 
 1. Write the feedback in markdown. Include:
@@ -82,29 +83,16 @@ For file-specific feedback (preferred):
 node ./add-comment.js --comment "$comment" --status Active --file-path /src/MyProject/Program.cs --start-line 42 --end-line 45
 ```
 
-For general PR-level feedback:
-```
-node ./add-comment.js --comment "$comment" --status Closed
-```
-
 **Status rules:**
 - `Active` — feedback that requests changes or flags a real issue
-- `Closed` — positive feedback, informational notes, or approval
 
 **Line numbers** must reference the current (new) version of the file, not the original.
 **File paths** must use forward slashes and start with a leading slash (e.g., `/src/App.cs`).
-
-# General Feedback
-
-After completing the per-file review for all files:
-- If no issues were found across any file, post a single `Closed` comment indicating the PR looks good to merge.
-- Do NOT post a summary comment listing what you reviewed — only post if you have actionable feedback or an explicit approval.
 
 # Notes
 
 - When including multi-line code blocks in comments, always wrap them with triple backticks on separate lines.
 - You are running in an Azure Pipelines context — network or file access restrictions may occur. If blocked, print suggestions to the console log and end the run.
 - New feedback must NOT overlap with existing comments already on the PR.
-- For largely refactoring PRs, limit feedback to newly introduced bugs or performance issues only.
 
 %CUSTOMPROMPT%

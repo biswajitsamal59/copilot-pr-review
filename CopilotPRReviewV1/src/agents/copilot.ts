@@ -1,5 +1,5 @@
-import * as child_process from 'child_process';
-import * as fs from 'fs';
+import { execFileSync, spawn } from 'node:child_process';
+import * as fs from 'node:fs';
 
 /**
  * Refreshes the Node process's PATH so that binaries installed during the
@@ -12,8 +12,13 @@ import * as fs from 'fs';
 function refreshPath(): void {
     if (process.platform === 'win32') {
         try {
-            const newPath = child_process.execSync(
-                'powershell -NoProfile -Command "[System.Environment]::GetEnvironmentVariable(\'Path\',\'Machine\') + \';\' + [System.Environment]::GetEnvironmentVariable(\'Path\',\'User\')"',
+            const newPath = execFileSync(
+                'powershell',
+                [
+                    '-NoProfile',
+                    '-Command',
+                    "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')",
+                ],
                 { encoding: 'utf8' },
             ).trim();
             process.env['PATH'] = newPath;
@@ -55,17 +60,17 @@ export async function runCopilotCli(
         '--allow-all-paths',
         '--allow-all-tools',
         '--deny-tool', 'shell(git push)',
+        '--no-color',
     ];
     if (model) {
         args.push('--model', model);
     }
 
     return new Promise((resolve, reject) => {
-        const proc = child_process.spawn('copilot', args, {
+        const proc = spawn('copilot', args, {
             shell: false,
             stdio: 'inherit',
             cwd: workingDirectory,
-            env: { ...process.env },
         });
 
         const timeoutId = setTimeout(() => {

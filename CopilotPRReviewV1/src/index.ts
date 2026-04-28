@@ -1,6 +1,6 @@
 import * as tl from 'azure-pipelines-task-lib/task';
-import * as path from 'path';
-import * as fs from 'fs';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 import { getValidatedTaskInputs } from './utils/task-inputs';
 import { checkCopilotCli, installCopilotCli } from './agents/installer';
 import { AdoClient } from './ado-api/client';

@@ -3,7 +3,7 @@
     "manifestVersion": 1,
     "id": "copilot-pr-review-v2",
     "name": "Copilot PR Review V2",
-    "version": "1.0.0",
+    "version": "1.0.4",
     "publisher": "Biswajit",
     "public": true,
     "targets": [

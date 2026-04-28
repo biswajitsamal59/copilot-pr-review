@@ -20,11 +20,10 @@
     "author": "Biswajit",
     "license": "MIT",
     "dependencies": {
-        "azure-pipelines-task-lib": "^4.17.3"
+        "azure-pipelines-task-lib": "^5.2.10"
     },
     "devDependencies": {
         "@types/node": "^22.19.17",
-        "@types/q": "^1.5.8",
         "typescript": "^5.3.0"
     }
 }

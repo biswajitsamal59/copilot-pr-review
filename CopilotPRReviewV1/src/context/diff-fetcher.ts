@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { execFileSync } from 'node:child_process';
 import { AdoClient } from '../ado-api/client';
 
 export interface ChangeEntry {
@@ -140,7 +140,7 @@ export function fetchIterationDiffs(
     }));
 }
 
-// ─── Text Formatting ──────────────────────────────────────────────────────────
+// Text Formatting
 
 export function formatIterationDetailsText(
     iterationId: number,

@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { AdoClient } from '../ado-api/client';
 import {
     fetchPrDetails,
@@ -61,7 +61,8 @@ export async function buildPrContext(
         fetchIterationChanges(client, repo, prId, iterationId),
     ]);
 
-    console.log(`  Fetching diffs for ${changeEntries.length} changed file(s)...`);
+    console.log(`  Fetching diffs for ${changeEntries.length} changed file(s). Source commit: ` +
+        `${latestIteration.sourceRefCommit?.commitId}, Target commit: ${latestIteration.targetRefCommit?.commitId}`);
     const allDiffs = fetchIterationDiffs(
         changeEntries,
         latestIteration.sourceRefCommit?.commitId ?? '',
