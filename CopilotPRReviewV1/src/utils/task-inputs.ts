@@ -10,6 +10,9 @@ export interface ValidatedTaskInputs {
     pullRequestId: string;
     timeoutMinutes: number;
     model: string | undefined;
+    jiraApiKey: string | undefined;
+    jiraProjectKey: string | undefined;
+    jiraAcceptanceCriteriaField: string | undefined;
 }
 
 export function getValidatedTaskInputs(): ValidatedTaskInputs | null {
@@ -91,6 +94,10 @@ export function getValidatedTaskInputs(): ValidatedTaskInputs | null {
     const timeoutMinutes = parseInt(tl.getInput('timeout') ?? '15', 10) || 15;
     const model = tl.getInput('model') || undefined;
 
+    const jiraApiKey = tl.getInput('jiraApiKey') || undefined;
+    const jiraProjectKey = tl.getInput('jiraProjectKey') || undefined;
+    const jiraAcceptanceCriteriaField = tl.getInput('jiraAcceptanceCriteriaField') || undefined;
+
     return {
         githubPat,
         azureDevOpsToken,
@@ -100,6 +107,9 @@ export function getValidatedTaskInputs(): ValidatedTaskInputs | null {
         repository,
         pullRequestId,
         timeoutMinutes,
-        model
+        model,
+        jiraApiKey,
+        jiraProjectKey,
+        jiraAcceptanceCriteriaField,
     };
 }

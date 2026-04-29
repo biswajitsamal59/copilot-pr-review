@@ -5,8 +5,10 @@ import { getValidatedTaskInputs } from './utils/task-inputs';
 import { checkCopilotCli, installCopilotCli } from './agents/installer';
 import { AdoClient } from './ado-api/client';
 import { buildPrContext } from './context/pr-context';
+import { extractJiraNumbers } from './context/jira-numbers';
 import { resolvePrompt } from './utils/prompt';
 import { runCopilotCli } from './agents/copilot';
+import { writeMcpConfig } from './agents/mcp-config';
 
 async function run(): Promise<void> {
     try {
@@ -15,7 +17,8 @@ async function run(): Promise<void> {
 
         const {
             githubPat, azureDevOpsToken, azureDevOpsAuthType, resolvedCollectionUri,
-            project, repository, pullRequestId, timeoutMinutes, model
+            project, repository, pullRequestId, timeoutMinutes, model,
+            jiraApiKey, jiraProjectKey, jiraAcceptanceCriteriaField,
         } = taskInputs;
 
         console.log(`\nCopilot PR Review — ${project}/${repository} PR #${pullRequestId}`);
@@ -56,6 +59,11 @@ async function run(): Promise<void> {
         // Expose iteration ID to agent scripts via environment
         process.env['ITERATION_ID'] = String(context.iterationId);
 
+        // Optional: configure JIRA via Atlassian Remote MCP. Failures are non-fatal.
+        const { jiraNumbers, copilotHome } = setupJiraMcp(
+            jiraApiKey, jiraProjectKey, context.description, workingDirectory,
+        );
+
         // Step 3: Run code review
 
         const promptTemplatePath = path.join(__dirname, '..', 'src', 'scripts', 'prompt.txt');
@@ -66,6 +74,8 @@ async function run(): Promise<void> {
             promptFileRawInput: tl.getInput('promptFileRaw') || undefined,
             promptTemplatePath,
             workingDir: workingDirectory,
+            jiraNumbers,
+            jiraAcField: jiraAcceptanceCriteriaField,
         });
 
         // Write thin wrapper scripts so the AI agent can call node ./add-comment.js
@@ -74,7 +84,7 @@ async function run(): Promise<void> {
         const timeoutMs = timeoutMinutes * 60 * 1000;
 
         console.log('\n[3/3] Running code review...');
-        await runCopilotCli(promptFilePath, model || undefined, workingDirectory, timeoutMs);
+        await runCopilotCli(promptFilePath, model || undefined, workingDirectory, timeoutMs, copilotHome);
 
         console.log('\nCopilot PR Review completed.');
 
@@ -82,6 +92,37 @@ async function run(): Promise<void> {
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         tl.setResult(tl.TaskResult.Failed, `Task failed: ${errorMessage}`);
+    }
+}
+
+/**
+ * If a JIRA service-account key is set and the PR description references
+ * issue numbers (e.g. PROJ-123), writes a Copilot CLI MCP config for the
+ * Atlassian Remote MCP server. All failure modes are non-fatal.
+ */
+function setupJiraMcp(
+    jiraApiKey: string | undefined,
+    jiraProjectKey: string | undefined,
+    prDescription: string,
+    workingDirectory: string,
+): { jiraNumbers: string[]; copilotHome: string | undefined } {
+    if (!jiraApiKey) return { jiraNumbers: [], copilotHome: undefined };
+
+    const jiraNumbers = extractJiraNumbers(prDescription, jiraProjectKey);
+    if (jiraNumbers.length === 0) {
+        console.log('  No JIRA numbers found in PR description. Skipping JIRA MCP setup.');
+        return { jiraNumbers, copilotHome: undefined };
+    }
+
+    try {
+        const copilotHome = path.join(workingDirectory, '.copilot-mcp');
+        writeMcpConfig(jiraApiKey, copilotHome);
+        console.log(`  JIRA MCP configured for: ${jiraNumbers.join(', ')}`);
+        return { jiraNumbers, copilotHome };
+    } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.log(`  Warning: failed to configure JIRA MCP — ${msg}. Continuing without JIRA context.`);
+        return { jiraNumbers, copilotHome: undefined };
     }
 }
 

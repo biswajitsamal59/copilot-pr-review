@@ -13,7 +13,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 4
+        "Patch": 5
     },
     "instanceNameFormat": "Copilot PR Review",
     "inputs": [
@@ -143,6 +143,30 @@
             "required": false,
             "defaultValue": "",
             "helpMarkDown": "Optional. A comma-separated list of email addresses. If specified, the task will only run code reviews for PRs authored by users with matching email addresses. Uses $(Build.RequestedForEmail) for comparison."
+        },
+        {
+            "name": "jiraApiKey",
+            "type": "string",
+            "label": "JIRA Service Account API Key",
+            "required": false,
+            "isSecret": true,
+            "helpMarkDown": "Optional. Atlassian Rovo MCP service-account API key (Bearer). When set, the review agent fetches linked JIRA tickets via the official Atlassian Remote MCP server and uses summary/description/AC to evaluate the diff. Requires your Atlassian admin to enable API token authentication for Rovo MCP and to create a service account with scopes `read:jira-work`, `read:account`, `read:me`."
+        },
+        {
+            "name": "jiraProjectKey",
+            "type": "string",
+            "label": "JIRA Project Key",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. Restricts JIRA key extraction to a single project (e.g. `PROJ`). When omitted, any key matching `[A-Z][A-Z0-9]+-\\d+` in the PR description is considered a JIRA ticket reference."
+        },
+        {
+            "name": "jiraAcceptanceCriteriaField",
+            "type": "string",
+            "label": "JIRA Acceptance Criteria Field",
+            "required": false,
+            "defaultValue": "",
+            "helpMarkDown": "Optional. Custom field id for acceptance criteria on your JIRA instance (e.g. `customfield_10100`). When set, the review agent reads this field from each issue and verifies the diff satisfies it."
         }
     ],
     "execution": {

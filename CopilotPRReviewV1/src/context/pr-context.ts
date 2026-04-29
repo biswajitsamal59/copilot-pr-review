@@ -17,6 +17,7 @@ import {
 
 export interface PrContextResult {
     iterationId: number;
+    description: string;
 }
 
 /**
@@ -80,5 +81,5 @@ export async function buildPrContext(
 
     fs.writeFileSync(path.join(outputDir, 'Iteration_Id.txt'), String(iterationId), 'utf8');
 
-    return { iterationId };
+    return { iterationId, description: prDetails.description ?? '' };
 }

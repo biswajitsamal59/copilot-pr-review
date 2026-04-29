@@ -9,6 +9,20 @@ export interface PromptConfig {
     promptFileRawInput: string | undefined;
     promptTemplatePath: string;
     workingDir: string;
+    jiraNumbers?: string[];
+    jiraAcField?: string;
+}
+
+function fillTemplate(
+    template: string,
+    customText: string,
+    jiraNumbers: string[] | undefined,
+    jiraAcField: string | undefined,
+): string {
+    return template
+        .replace('%CUSTOMPROMPT%', customText)
+        .replace('%JIRANUMBERS%', jiraNumbers?.length ? jiraNumbers.join(', ') : '(none)')
+        .replace('%JIRAACFIELD%', jiraAcField || '(not configured)');
 }
 
 /**
@@ -28,6 +42,8 @@ export function resolvePrompt(config: PromptConfig): string {
         promptFileRawInput,
         promptTemplatePath,
         workingDir,
+        jiraNumbers,
+        jiraAcField,
     } = config;
 
     // filePath inputs return the working directory when empty — treat as unset
@@ -80,7 +96,7 @@ export function resolvePrompt(config: PromptConfig): string {
         if (promptInput) {
             console.log('  Prompt: custom (inline)');
             validateNoDoubleQuotes(promptInput);
-            fs.writeFileSync(outPath, template.replace('%CUSTOMPROMPT%', promptInput), 'utf8');
+            fs.writeFileSync(outPath, fillTemplate(template, promptInput, jiraNumbers, jiraAcField), 'utf8');
         } else if (isPromptFileSet) {
             console.log('  Prompt: custom (file)');
             const fileContent = fs.readFileSync(promptFileInput!, 'utf8').trim();
@@ -89,10 +105,10 @@ export function resolvePrompt(config: PromptConfig): string {
                 process.exit(1);
             }
             validateNoDoubleQuotes(fileContent, promptFileInput);
-            fs.writeFileSync(outPath, template.replace('%CUSTOMPROMPT%', fileContent), 'utf8');
+            fs.writeFileSync(outPath, fillTemplate(template, fileContent, jiraNumbers, jiraAcField), 'utf8');
         } else {
             console.log('  Prompt: default');
-            fs.writeFileSync(outPath, template.replace('%CUSTOMPROMPT%', ''), 'utf8');
+            fs.writeFileSync(outPath, fillTemplate(template, '', jiraNumbers, jiraAcField), 'utf8');
         }
     }
 

@@ -10,6 +10,21 @@ Read `PR_Details.txt` and `Iteration_Details.txt` before starting.
 
 # Per-File Review Protocol
 
+## Step 0: Fetch JIRA context (if applicable)
+
+JIRA issue numbers referenced in this PR: %JIRANUMBERS%
+Acceptance-criteria field: %JIRAACFIELD%
+
+If the list is not `(none)`, fetch ticket context BEFORE reviewing any file:
+
+1. Call `getAccessibleAtlassianResources` once. Remember the `id` of the first resource — that is the `cloudId`.
+2. For each issue number, call `getJiraIssue` passing it as `issueIdOrKey` along with the `cloudId`. Read the summary, status, issue type, description, and — if the AC field is configured (i.e. not `(not configured)`) — the value at `fields.<that field id>`.
+3. Carry this context through the rest of the review. Use it to judge whether the diff matches the ticket's stated intent and acceptance criteria.
+
+If a JIRA tool call fails (auth error, network, missing scope), print a brief note in the run output and continue without JIRA context. Do not fail the review.
+
+## Per-file loop
+
 You MUST follow this protocol for EVERY changed file listed in `Iteration_Details.txt`. Do not batch or skip files. Process them one at a time.
 
 **For each changed file:**
@@ -32,7 +47,7 @@ When applicable:
 
 ## Step 4: Analyze for issues
 Evaluate the changes against these criteria (in priority order):
-1. **Correctness** — Does the code do what it intends? Are there logic errors, off-by-one mistakes, or unhandled edge cases?
+1. **Correctness** — Does the code do what it intends? Are there logic errors, off-by-one mistakes, or unhandled edge cases? If JIRA acceptance criteria were retrieved in Step 0, also verify the diff satisfies them; flag any divergence explicitly in your comment.
 2. **Security** — SQL injection, XSS, command injection, secrets exposure, unsafe deserialization, or other OWASP top 10 risks?
 3. **Performance** — Unbounded loops, unnecessary allocations, N+1 queries, missing pagination, or blocking calls in async paths?
 4. **Safety** — Null/undefined access, unhandled promise rejections, missing error handling at system boundaries?

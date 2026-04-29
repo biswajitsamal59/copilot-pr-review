@@ -48,6 +48,7 @@ export async function runCopilotCli(
     model: string | undefined,
     workingDirectory: string,
     timeoutMs: number,
+    copilotHome?: string,
 ): Promise<void> {
     refreshPath();
 
@@ -66,11 +67,16 @@ export async function runCopilotCli(
         args.push('--model', model);
     }
 
+    const childEnv = copilotHome
+        ? { ...process.env, COPILOT_HOME: copilotHome }
+        : process.env;
+
     return new Promise((resolve, reject) => {
         const proc = spawn('copilot', args, {
             shell: false,
             stdio: 'inherit',
             cwd: workingDirectory,
+            env: childEnv,
         });
 
         const timeoutId = setTimeout(() => {

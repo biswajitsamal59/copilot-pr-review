@@ -59,6 +59,9 @@ The Build Service identity needs **Contribute to pull requests** permission on t
 | `promptRaw` | no | — | Raw prompt passed verbatim to the Copilot CLI, bypassing the template. |
 | `promptFileRaw` | no | — | Path to a file containing a raw prompt (verbatim). |
 | `authors` | no | — | Comma-separated list of author emails. Task only runs when the PR author matches. |
+| `jiraApiKey` | no | — | Atlassian Rovo MCP service-account API key (Bearer). When set, the agent fetches linked JIRA tickets via the official Atlassian Remote MCP server and uses summary/description/AC to evaluate the diff. See [JIRA integration](#jira-integration). |
+| `jiraProjectKey` | no | — | Restrict JIRA key extraction to one project (e.g. `PROJ`). When omitted, any key matching `[A-Z][A-Z0-9]+-\d+` in the PR description is treated as a ticket reference. |
+| `jiraAcceptanceCriteriaField` | no | — | Custom field id for acceptance criteria (e.g. `customfield_10100`). When set, the agent reads it from each issue and verifies the diff satisfies it. |
 
 Only one of `prompt`, `promptFile`, `promptRaw`, `promptFileRaw` may be set per run.
 
@@ -70,6 +73,42 @@ Only one of `prompt`, `promptFile`, `promptRaw`, `promptFileRaw` may be set per 
 
 - **System access token (recommended for cloud):** set `useSystemAccessToken: true`. Grant the build identity `Contribute to pull requests` on the repository.
 - **Personal access token (required for Server / on-prem):** create a PAT with `Code (Read & Write)` and `Pull Request Threads (Read & Write)`, store as a secret, pass via `azureDevOpsPat`.
+
+## JIRA integration
+
+When `jiraApiKey` is set, the task extracts JIRA issue keys from the PR description and configures the Copilot CLI to talk to the [Atlassian Remote MCP server](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/) (`https://mcp.atlassian.com/v1/mcp`). The agent then calls `getAccessibleAtlassianResources` once and `getJiraIssue` for each key, and uses summary/description/AC to evaluate whether the diff actually satisfies the ticket.
+
+The feature is fully opt-in. With no `jiraApiKey`, the task behaves exactly as before — no MCP config is written and no extra calls are made.
+
+### Prerequisites
+
+1. Your Atlassian organization admin must enable [API token authentication](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/configuring-authentication-via-api-token/) for the Rovo MCP server.
+2. The admin creates a **service account** and generates an API key with these scopes:
+   - `read:jira-work` (required to read issues)
+   - `read:account`, `read:me` (required by `getAccessibleAtlassianResources`)
+3. Store the API key as a secret pipeline variable.
+
+> Note: some MCP tools are unavailable when authenticating via API token (vs OAuth). The two read tools used here (`getJiraIssue`, `getAccessibleAtlassianResources`) are documented as available in API-token mode.
+
+### Finding the acceptance-criteria field id
+
+If your team stores acceptance criteria in a custom field, look up its id at `<your-site>.atlassian.net/rest/api/3/field` (filter by name) and pass that id (e.g. `customfield_10100`) as `jiraAcceptanceCriteriaField`. If omitted, the agent uses the issue description and any AC found there.
+
+### YAML example
+
+```yaml
+- task: CopilotPRReviewV2@1
+  inputs:
+    githubPat: $(GITHUB_PAT)
+    useSystemAccessToken: true
+    jiraApiKey: $(JIRA_MCP_API_KEY)
+    jiraProjectKey: PROJ
+    jiraAcceptanceCriteriaField: customfield_10100
+```
+
+### Failure behavior
+
+JIRA setup is best-effort. The build will not fail because of JIRA. If the API key is missing scopes, the org hasn't enabled API-token auth, the description contains no keys, or the network call fails, a warning is logged and the review continues without JIRA context.
 
 ## Examples
 
