@@ -5,32 +5,7 @@ function isWindows(): boolean {
     return process.platform === 'win32';
 }
 
-function isNoiseLine(line: string): boolean {
-    // Lines that should be filtered from the pipeline log.
-    // winget has no flag to suppress its package license/terms text, so the
-    // leftover boilerplate must be filtered here even with --silent +
-    // --accept-*-agreements + --disable-interactivity.
-    const NOISE_PATTERNS: Array<RegExp | string> = [
-        /[█▒░]/,                                    // progress bars
-        /^[\\|/\-]\s*$/,                            // spinner frames
-        'Terms of Transaction:',
-        'This application is licensed to you',
-        'Microsoft is not responsible',
-        'The source requires the current machine',
-        'Path environment variable modified',       // misleading: we refresh PATH ourselves in copilot.ts
-    ];
-
-    const trimmed = line.trim();
-    if (!trimmed) return true;
-    return NOISE_PATTERNS.some((p) =>
-        typeof p === 'string' ? trimmed.startsWith(p) : p.test(trimmed),
-    );
-}
-
 export async function checkCopilotCli(): Promise<boolean> {
-    // execFileSync (not spawnSync) is the documented tool for "run a binary,
-    // get exit status" — no shell, more efficient. Throws on ENOENT or
-    // non-zero exit, both of which mean "not installed / not working".
     try {
         execFileSync('copilot', ['--version'], { stdio: 'ignore' });
         return true;
@@ -41,10 +16,7 @@ export async function checkCopilotCli(): Promise<boolean> {
 
 export async function installCopilotCli(): Promise<void> {
     return new Promise((resolve, reject) => {
-        // Spawn the binary directly with shell:false on both platforms.
-        // On Linux the pipe-chained installer is run by spawning bash with -c
-        // explicitly — the pattern Node's docs recommend over relying on the
-        // shell:true option (avoids DEP0190 entirely).
+        // Spawn the binary directly with shell:false on both platforms
         const [command, args] = isWindows()
             ? ['winget', [
                 'install', 'GitHub.Copilot',
@@ -57,16 +29,11 @@ export async function installCopilotCli(): Promise<void> {
 
         const proc = spawn(command, args as string[], { shell: false, stdio: 'pipe' });
 
-        const forwardOutput = (data: Buffer): void => {
-            for (const line of data.toString().split(/\r?\n/)) {
-                if (!isNoiseLine(line)) {
-                    console.log(`  ${line.trim()}`);
-                }
-            }
-        };
-
-        proc.stdout?.on('data', forwardOutput);
-        proc.stderr?.on('data', forwardOutput);
+        // Buffer all output silently; only surfaces on failure for diagnostics.
+        // Avoids piping winget's CR-delimited progress bars into Azure Pipelines logs.
+        const outputChunks: Buffer[] = [];
+        proc.stdout?.on('data', (data: Buffer) => outputChunks.push(data));
+        proc.stderr?.on('data', (data: Buffer) => outputChunks.push(data));
 
         proc.on('close', (code) => {
             if (code === 0) {
@@ -76,7 +43,9 @@ export async function installCopilotCli(): Promise<void> {
                 }
                 resolve();
             } else {
-                reject(new Error(`Failed to install GitHub Copilot CLI (exit code: ${code})`));
+                const diagnostics = Buffer.concat(outputChunks).toString('utf8').trim();
+                const detail = diagnostics ? `\n${diagnostics}` : '';
+                reject(new Error(`Failed to install GitHub Copilot CLI (exit code: ${code})${detail}`));
             }
         });
 
