@@ -78,7 +78,5 @@ export async function buildPrContext(
     fs.writeFileSync(path.join(outputDir, 'Iteration_Details.txt'), iterationDetailsText, 'utf8');
     console.log(`  ${allDiffs.length} file(s) ready for review.`);
 
-    fs.writeFileSync(path.join(outputDir, 'Iteration_Id.txt'), String(iterationId), 'utf8');
-
     return { iterationId };
 }

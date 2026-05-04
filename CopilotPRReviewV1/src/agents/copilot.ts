@@ -1,38 +1,5 @@
-import { execFileSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import * as fs from 'node:fs';
-
-/**
- * Refreshes the Node process's PATH so that binaries installed during the
- * current pipeline run (e.g. via winget) are discoverable.
- *
- *  - Windows: reads the current Machine + User PATH from the registry
- *    (winget updates the registry but not the running process).
- *  - Linux: prepends ~/.local/bin (where the Copilot install script puts it).
- */
-function refreshPath(): void {
-    if (process.platform === 'win32') {
-        try {
-            const newPath = execFileSync(
-                'powershell',
-                [
-                    '-NoProfile',
-                    '-Command',
-                    "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')",
-                ],
-                { encoding: 'utf8' },
-            ).trim();
-            process.env['PATH'] = newPath;
-        } catch (err) {
-            console.log(`  Warning: Could not refresh PATH: ${err instanceof Error ? err.message : String(err)}`);
-        }
-    } else {
-        const home = process.env['HOME'] ?? '';
-        const localBin = `${home}/.local/bin`;
-        if (!process.env['PATH']?.includes(localBin)) {
-            process.env['PATH'] = `${localBin}:${process.env['PATH']}`;
-        }
-    }
-}
 
 /**
  * Runs the GitHub Copilot CLI.
@@ -49,8 +16,6 @@ export async function runCopilotCli(
     workingDirectory: string,
     timeoutMs: number,
 ): Promise<void> {
-    refreshPath();
-
     // Read prompt in Node — no shell involved
     const promptContent = fs.readFileSync(promptFilePath, 'utf8');
 

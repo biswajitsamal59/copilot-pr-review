@@ -62,8 +62,6 @@ async function run(): Promise<void> {
         const promptFilePath = resolvePrompt({
             promptInput: tl.getInput('prompt') || undefined,
             promptFileInput: tl.getInput('promptFile') || undefined,
-            promptRawInput: tl.getInput('promptRaw') || undefined,
-            promptFileRawInput: tl.getInput('promptFileRaw') || undefined,
             promptTemplatePath,
             workingDir: workingDirectory,
         });

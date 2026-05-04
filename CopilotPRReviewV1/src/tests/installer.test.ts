@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { EventEmitter } from 'node:events'
 import * as cp from 'node:child_process'
 
@@ -49,6 +49,10 @@ describe('checkCopilotCli', () => {
 describe('installCopilotCli', () => {
     beforeEach(() => {
         vi.resetAllMocks()
+        // refreshPathAfterInstall calls execFileSync(powershell...) on Windows
+        // after a successful install — return a benign empty string so the
+        // PATH-merge runs cleanly without console-noise warnings.
+        vi.mocked(cp.execFileSync).mockReturnValue('' as any)
     })
 
     it('resolves when install process exits with code 0', async () => {
@@ -106,5 +110,72 @@ describe('installCopilotCli', () => {
         })
 
         await expect(installPromise).rejects.toThrow('install error details')
+    })
+})
+
+describe('PATH refresh after install', () => {
+    const originalPath = process.env['PATH']
+    const originalPlatform = process.platform
+
+    beforeEach(() => {
+        vi.resetAllMocks()
+    })
+
+    afterEach(() => {
+        process.env['PATH'] = originalPath
+        Object.defineProperty(process, 'platform', { value: originalPlatform })
+    })
+
+    it('on Windows, merges new registry PATH entries without clobbering existing PATH', async () => {
+        Object.defineProperty(process, 'platform', { value: 'win32' })
+        process.env['PATH'] = 'C:\\existing;C:\\Windows'
+        const registryReturn = 'C:\\Windows;C:\\Program Files\\GitHub Copilot CLI'
+        vi.mocked(cp.execFileSync).mockReturnValue(registryReturn as any)
+        vi.mocked(cp.spawn).mockReturnValue(makeMockProcess(0) as any)
+
+        await installCopilotCli()
+
+        expect(process.env['PATH']).toContain('C:\\existing')
+        expect(process.env['PATH']).toContain('C:\\Program Files\\GitHub Copilot CLI')
+        // C:\Windows already existed — must not be duplicated
+        const occurrences = process.env['PATH']!.split(';').filter(p => p.toLowerCase() === 'c:\\windows').length
+        expect(occurrences).toBe(1)
+    })
+
+    it('on Windows, leaves PATH unchanged when registry has no new entries', async () => {
+        Object.defineProperty(process, 'platform', { value: 'win32' })
+        process.env['PATH'] = 'C:\\Windows;C:\\existing'
+        vi.mocked(cp.execFileSync).mockReturnValue('C:\\Windows;C:\\existing' as any)
+        vi.mocked(cp.spawn).mockReturnValue(makeMockProcess(0) as any)
+
+        await installCopilotCli()
+
+        expect(process.env['PATH']).toBe('C:\\Windows;C:\\existing')
+    })
+
+    it('on Windows, swallows powershell failure and keeps PATH unchanged', async () => {
+        Object.defineProperty(process, 'platform', { value: 'win32' })
+        process.env['PATH'] = 'C:\\Windows'
+        vi.mocked(cp.execFileSync).mockImplementation(() => { throw new Error('powershell missing') })
+        vi.mocked(cp.spawn).mockReturnValue(makeMockProcess(0) as any)
+
+        await expect(installCopilotCli()).resolves.toBeUndefined()
+        expect(process.env['PATH']).toBe('C:\\Windows')
+    })
+
+    it('on non-Windows, prepends ~/.local/bin to PATH', async () => {
+        Object.defineProperty(process, 'platform', { value: 'linux' })
+        process.env['HOME'] = '/home/agent'
+        const originalAgentPath = '/usr/bin:/bin'
+        process.env['PATH'] = originalAgentPath
+        vi.mocked(cp.spawn).mockReturnValue(makeMockProcess(0) as any)
+
+        await installCopilotCli()
+
+        // path.join + path.delimiter resolve per the host OS, so just assert
+        // that ~/.local/bin (in some form) was prepended to the original PATH.
+        expect(process.env['PATH']).toContain('.local')
+        expect(process.env['PATH']).toContain('bin')
+        expect(process.env['PATH']!.endsWith(originalAgentPath)).toBe(true)
     })
 })

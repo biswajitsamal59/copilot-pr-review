@@ -74,13 +74,6 @@ describe('AdoClient', () => {
         expect(result.pullRequestId).toBe(42)
     })
 
-    it('returns raw text when accept is not application/json', async () => {
-        vi.spyOn(global, 'fetch').mockResolvedValue(makeResponse('raw text content'))
-
-        const result = await bearerClient.getRawText('https://raw.example.com/file.txt')
-        expect(result).toBe('raw text content')
-    })
-
     it('throws descriptive error on 401', async () => {
         vi.spyOn(global, 'fetch').mockResolvedValue(makeResponse({ message: 'Unauthorized' }, 401))
 
@@ -126,7 +119,7 @@ describe('AdoClient', () => {
         expect(fetchStub.mock.calls[0][1]).toMatchObject({ method: 'DELETE' })
     })
 
-    it('handles empty response body for non-JSON accepts', async () => {
+    it('handles empty response body', async () => {
         vi.spyOn(global, 'fetch').mockResolvedValue(makeResponse(''))
 
         const result = await bearerClient.get<string>('some-path')
@@ -139,13 +132,5 @@ describe('AdoClient', () => {
 
     it('getProject returns project name', () => {
         expect(bearerClient.getProject()).toBe('MyProject')
-    })
-
-    it('uses absolute URL as-is when path starts with http', async () => {
-        const fetchStub = vi.spyOn(global, 'fetch').mockResolvedValue(makeResponse('content'))
-
-        await bearerClient.getRawText('https://absolute.example.com/file')
-
-        expect(fetchStub.mock.calls[0][0] as string).toContain('absolute.example.com')
     })
 })

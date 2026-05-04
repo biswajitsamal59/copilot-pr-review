@@ -13,7 +13,7 @@
     "version": {
         "Major": 1,
         "Minor": 0,
-        "Patch": 5
+        "Patch": 6
     },
     "instanceNameFormat": "Copilot PR Review",
     "inputs": [
@@ -102,7 +102,7 @@
             "label": "Custom Prompt File",
             "required": false,
             "defaultValue": "",
-            "helpMarkDown": "Optional. Path to a .txt file containing a custom prompt for Copilot. The file must exist and contain content."
+            "helpMarkDown": "Optional. Path to a .txt file with custom prompt text. The text is injected into the default review template at the %CUSTOMPROMPT% placeholder. Cannot be combined with `prompt`."
         },
         {
             "name": "prompt",
@@ -110,31 +110,11 @@
             "label": "Custom Prompt",
             "required": false,
             "defaultValue": "",
-            "helpMarkDown": "Optional. A custom prompt to pass directly to Copilot. If both prompt and promptFile are specified, prompt takes precedence.",
+            "helpMarkDown": "Optional. Inline custom prompt text injected into the default review template at the %CUSTOMPROMPT% placeholder. Cannot be combined with `promptFile`.",
             "properties": {
                 "rows": "10",
                 "maxLength": "5000"
             }
-        },
-        {
-            "name": "promptRaw",
-            "type": "multiLine",
-            "label": "Raw Prompt",
-            "required": false,
-            "defaultValue": "",
-            "helpMarkDown": "Optional. A raw prompt to pass directly to the Copilot CLI with no modification. Cannot be combined with other prompt inputs (prompt, promptFile, promptFileRaw).",
-            "properties": {
-                "rows": "10",
-                "maxLength": "5000"
-            }
-        },
-        {
-            "name": "promptFileRaw",
-            "type": "filePath",
-            "label": "Raw Prompt File",
-            "required": false,
-            "defaultValue": "",
-            "helpMarkDown": "Optional. Path to a file containing a raw prompt to pass directly to the Copilot CLI with no modification. Cannot be combined with other prompt inputs (prompt, promptFile, promptRaw)."
         },
         {
             "name": "authors",

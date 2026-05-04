@@ -4,7 +4,6 @@ import * as cp from 'node:child_process'
 import * as fs from 'node:fs'
 
 vi.mock('node:child_process', () => ({
-    execFileSync: vi.fn(),
     spawn: vi.fn(),
 }))
 
@@ -31,8 +30,6 @@ function makeMockProcess(exitCode = 0, error?: Error) {
 describe('runCopilotCli', () => {
     beforeEach(() => {
         vi.resetAllMocks()
-        // refreshPath on Windows calls execFileSync(powershell...) — return empty string
-        vi.mocked(cp.execFileSync).mockReturnValue('' as any)
     })
 
     it('resolves when copilot exits with code 0', async () => {

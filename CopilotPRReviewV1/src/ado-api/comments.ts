@@ -59,7 +59,7 @@ export async function createComment(
     // Create new thread
     const threadsUrl = `${base}/threads`;
     const isInline = !!filePath && (startLine ?? 0) > 0;
-    const effectiveEndLine = (endLine ?? 0) > 0 ? endLine! : (startLine ?? 0);
+    const effectiveEndLine = endLine && endLine > 0 ? endLine : startLine!;
 
     const body: Record<string, unknown> = {
         comments: [{ content: comment, commentType: 1 }],

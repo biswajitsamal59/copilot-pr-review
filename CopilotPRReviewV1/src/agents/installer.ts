@@ -37,10 +37,7 @@ export async function installCopilotCli(): Promise<void> {
 
         proc.on('close', (code) => {
             if (code === 0) {
-                if (!isWindows()) {
-                    const localBin = path.join(process.env['HOME'] ?? '', '.local', 'bin');
-                    process.env['PATH'] = `${localBin}${path.delimiter}${process.env['PATH']}`;
-                }
+                refreshPathAfterInstall();
                 resolve();
             } else {
                 const diagnostics = Buffer.concat(outputChunks).toString('utf8').trim();
@@ -51,4 +48,44 @@ export async function installCopilotCli(): Promise<void> {
 
         proc.on('error', (err) => reject(new Error(`Failed to install GitHub Copilot CLI: ${err.message}`)));
     });
+}
+
+/**
+ * Makes the freshly installed Copilot CLI discoverable from this Node process.
+ * - Linux: prepend ~/.local/bin (where the install script drops the binary).
+ * - Windows: winget updates Machine/User PATH in the registry, but the running
+ *   process inherited PATH at startup. Read the registry and append any entries
+ *   that aren't already present, preserving existing process-scope additions.
+ */
+function refreshPathAfterInstall(): void {
+    if (!isWindows()) {
+        const localBin = path.join(process.env['HOME'] ?? '', '.local', 'bin');
+        process.env['PATH'] = `${localBin}${path.delimiter}${process.env['PATH']}`;
+        return;
+    }
+
+    try {
+        const registryPath = execFileSync(
+            'powershell',
+            [
+                '-NoProfile',
+                '-Command',
+                "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')",
+            ],
+            { encoding: 'utf8' },
+        ).trim();
+
+        const existing = (process.env['PATH'] ?? '').split(path.delimiter);
+        const normalize = (p: string) => p.toLowerCase().replace(/[\\/]+$/, '');
+        const existingSet = new Set(existing.map(normalize));
+        const additions = registryPath
+            .split(';')
+            .filter(p => p && !existingSet.has(normalize(p)));
+
+        if (additions.length > 0) {
+            process.env['PATH'] = [...existing, ...additions].join(path.delimiter);
+        }
+    } catch (err) {
+        console.log(`  Warning: Could not refresh PATH: ${err instanceof Error ? err.message : String(err)}`);
+    }
 }

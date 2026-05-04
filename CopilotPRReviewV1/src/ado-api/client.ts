@@ -22,25 +22,21 @@ export class AdoClient {
     }
 
     /**
-     * Core HTTP request using native fetch
-     * If path starts with 'http', it's used as an absolute URL (for file content).
+     * Core HTTP request using native fetch.
      */
     async request<T>(
         method: 'GET' | 'POST' | 'PATCH' | 'DELETE',
         path: string,
         body?: Record<string, unknown>,
-        options?: { accept?: string }
     ): Promise<T> {
-        const accept = options?.accept ?? 'application/json';
-
-        let fullUrl = path.startsWith('http') ? path : `${this.baseUrl}/${path.replace(/^\//, '')}`;
+        let fullUrl = `${this.baseUrl}/${path.replace(/^\//, '')}`;
         if (!fullUrl.includes('api-version')) {
             fullUrl += (fullUrl.includes('?') ? '&' : '?') + 'api-version=7.1';
         }
 
         const headers: Record<string, string> = {
             'Authorization': this.authHeader,
-            'Accept': accept,
+            'Accept': 'application/json',
         };
         if (body !== undefined) {
             headers['Content-Type'] = 'application/json';
@@ -55,14 +51,10 @@ export class AdoClient {
         const rawBody = await res.text();
 
         if (res.ok) {
-            if (accept !== 'application/json' || rawBody.trim() === '') {
+            if (rawBody.trim() === '') {
                 return rawBody as unknown as T;
             }
-            try {
-                return JSON.parse(rawBody) as T;
-            } catch {
-                return rawBody as unknown as T;
-            }
+            return JSON.parse(rawBody) as T;
         }
 
         // Error response
@@ -97,10 +89,6 @@ export class AdoClient {
 
     async delete(path: string): Promise<void> {
         await this.request<void>('DELETE', path);
-    }
-
-    async getRawText(absoluteUrl: string): Promise<string> {
-        return this.request<string>('GET', absoluteUrl, undefined, { accept: 'text/plain' });
     }
 
     getCollectionUri(): string {

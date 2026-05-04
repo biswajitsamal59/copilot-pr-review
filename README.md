@@ -55,12 +55,10 @@ The Build Service identity needs **Contribute to pull requests** permission on t
 | `timeout` | no | `15` | Maximum minutes the Copilot review may run. |
 | `model` | no | Copilot default | Optional model override (e.g. `gpt-4`, `claude-sonnet`). |
 | `prompt` | no | — | Custom prompt text to inject into the default review template (replaces `%CUSTOMPROMPT%`). |
-| `promptFile` | no | — | Path to a `.txt` file with custom prompt text. |
-| `promptRaw` | no | — | Raw prompt passed verbatim to the Copilot CLI, bypassing the template. |
-| `promptFileRaw` | no | — | Path to a file containing a raw prompt (verbatim). |
+| `promptFile` | no | — | Path to a `.txt` file with custom prompt text. Injected into the default review template. |
 | `authors` | no | — | Comma-separated list of author emails. Task only runs when the PR author matches. |
 
-Only one of `prompt`, `promptFile`, `promptRaw`, `promptFileRaw` may be set per run.
+Only one of `prompt` or `promptFile` may be set per run.
 
 ## Authentication
 

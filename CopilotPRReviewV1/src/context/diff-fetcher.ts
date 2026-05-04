@@ -10,7 +10,6 @@ export interface ChangeEntry {
 export interface FileDiff {
     path: string;
     changeType: string;
-    originalPath?: string;
     diffContent: string;
 }
 
@@ -135,7 +134,6 @@ export function fetchIterationDiffs(
     return changeEntries.map(entry => ({
         path: entry.item.path,
         changeType: entry.changeType,
-        originalPath: entry.originalPath,
         diffContent: gitDiffs.get(entry.item.path) ?? '(No diff content available)',
     }));
 }
@@ -182,23 +180,22 @@ export function formatIterationDetailsText(
 
     // Changed Files with Diffs
     lines.push('', '[Changed Files]');
-    const nonTruncated = changeEntries.filter(c => c.changeType !== 'truncated');
 
-    if (nonTruncated.length > 0) {
+    if (changeEntries.length > 0) {
         const counts = { add: 0, edit: 0, delete: 0, other: 0 };
-        for (const c of nonTruncated) {
+        for (const c of changeEntries) {
             if (c.changeType in counts) (counts as Record<string, number>)[c.changeType]++;
             else counts.other++;
         }
 
-        lines.push(`  Total files changed: ${nonTruncated.length}`);
+        lines.push(`  Total files changed: ${changeEntries.length}`);
         let summary = `  +${counts.add} added | ~${counts.edit} modified | -${counts.delete} deleted`;
         if (counts.other > 0) summary += ` | ${counts.other} other`;
         lines.push(summary);
 
         const diffMap = new Map(diffs.map(d => [d.path, d.diffContent]));
 
-        for (const change of nonTruncated) {
+        for (const change of changeEntries) {
             lines.push('');
             lines.push(`  [${CHANGE_LABELS[change.changeType] ?? change.changeType}] ${change.item.path}`);
             if (change.changeType === 'rename' && change.originalPath) {
@@ -212,11 +209,6 @@ export function formatIterationDetailsText(
                     lines.push(`  ${diffLine}`);
                 }
             }
-        }
-
-        const truncated = diffs.find(d => d.changeType === 'truncated');
-        if (truncated) {
-            lines.push('', `  ${truncated.diffContent}`);
         }
     } else {
         lines.push('  No file changes found in this iteration.');
